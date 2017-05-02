@@ -198,7 +198,6 @@ void ENV::ObjKiemel(OBJ *obj)
 
 void ENV::UpdateDrawHandle()
 {
-	cout << objektumok.size() << endl;
 	if (objektumok.size()<1) return;
 
 	static bool lenyomva=false; 

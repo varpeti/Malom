@@ -1,9 +1,8 @@
 #include "env.hpp"
 #include "lua_adapter.hpp"
-#include "menu.hpp"
+#include "fomenu.hpp"
 #include "jatek.hpp"
 #include <iostream>
-
 
 
 int main()
@@ -16,11 +15,9 @@ int main()
 	initjatek(env);
 
 	int m=0;
-	while ( m=mainmenu(env) !=3 )
+	while ( (m=mainmenu(env)) != 3 )
 	{
-		if (m==1)
-		{
-		}
+		cout << m << endl;
 	}
 
 	
