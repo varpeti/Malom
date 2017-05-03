@@ -27,12 +27,14 @@ class MENU : public ABLAK
 		}
 
 		bool supdate(event ev, double X0, double Y0, KAMERA kamera); 
-		void addObj(OBJ *obj) {}; // Nem lehet hozzáadni újabb objektumokoat, utólag.
+		//void addObj(OBJ *obj) {}; // Nem lehet hozzáadni újabb objektumokoat, utólag.
 		void getter(ostream& ki) const;
 };
 
 bool MENU::supdate(event ev, double X0, double Y0, KAMERA kamera)
 {
+	objektumok[objektumok.size()-1]->supdate(ev,x+X0,y+Y0,kamera); // Updetelődik a menüpont is ha kell. (pl kiválasztó)
+
 	if (ev.type==ev_mouse)
 	{
 		if (ev.button==btn_left)

@@ -8,6 +8,8 @@
 int main()
 {
 	srand(time(0));
+
+	LuaAdapter lua ("main.lua");
 	
 	ENV env (700,600,false);
 
@@ -19,7 +21,6 @@ int main()
 	{
 		cout << m << endl;
 	}
-
 	
 	return 0;
 }

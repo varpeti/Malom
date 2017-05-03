@@ -15,7 +15,7 @@ class KIVALASZTO : public ABLAK
 		KIVALASZTO(double x, double y, SZIN szin, SZIN szin2, vector<string> lista, unsigned int size2=0,unsigned int size=8)
 			: ABLAK(x,y,gout.twidth("A")*size+TEXT_RAHAGYAS*3,
 				(gout.cascent()+TEXT_RAHAGYAS*4)*( (size2 ? size2 : lista.size()) +2)+TEXT_RAHAGYAS,
-				szin2,true), size(size), size2(size2)
+				szin2,false), size(size), size2(size2)
 		{	
 			string gorget;
 			while (gorget.size()<size) gorget+='-';

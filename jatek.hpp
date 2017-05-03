@@ -12,7 +12,7 @@ class MEZO : public ABLAK // A mező amin valamelyik játékos áll vagy állhat
 {
 public:
 	MEZO(double x, double y, int szine) 
-		: ABLAK(x,y,33,33,650,szine*33,false) {};
+		: ABLAK(x,y,33,33,650,szine*33+1,false) {};
 	~MEZO();
 };
 
@@ -25,7 +25,7 @@ class TABLA : public ABLAK
 		TABLA(bool t[49])
 			: ABLAK(83,33,462,462,683,0,true)
 		{	
-			for (int y = 0; y < 8; ++y)
+			for (int y = 0; y < 8; ++y) // A tábla 7*7-es de csak 24 mező van rajta.
 			{
 				for (int x = 0; x < 8; ++x)
 				{
@@ -42,7 +42,7 @@ class TABLA : public ABLAK
 		void getter(ostream& ki) const;
 };
 
-bool TABLA::supdate(event ev, double X0, double Y0, KAMERA kamera) // A tábla 7*7-es de csak 24 mező van rajta.
+bool TABLA::supdate(event ev, double X0, double Y0, KAMERA kamera)
 {
 	if (ev.type==ev_mouse)
 	{
