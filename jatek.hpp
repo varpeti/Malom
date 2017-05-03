@@ -1,19 +1,12 @@
-#include "env.hpp"
-#include "szambeallito.hpp"
-#include "kivalaszto.hpp"
-
 #include "textbox.hpp"
 
-using namespace genv;
-
-OBJ *tabla;
+static OBJ *tabla;
 
 class MEZO : public ABLAK // A mező amin valamelyik játékos áll vagy állhat.
 {
 public:
 	MEZO(double x, double y, int szine) 
 		: ABLAK(x,y,33,33,650,szine*33+1,false) {};
-	~MEZO();
 };
 
 class TABLA : public ABLAK
@@ -71,12 +64,12 @@ void TABLA::getter(ostream& ki) const
 
 void initjatek(ENV &env)
 {
-	bool a[49] = {	1,0,0,1,0,0,1,   // A tábla
+	bool a[49] = {	1,0,0,1,0,0,1,	// A tábla
 					0,1,0,1,0,1,0,
-					0,0,1,1,1,0,0,   
-					1,1,1,0,1,1,1,   
-					0,0,1,1,1,0,0,  
-					0,1,0,1,0,1,0,  
+					0,0,1,1,1,0,0,
+					1,1,1,0,1,1,1,
+					0,0,1,1,1,0,0,
+					0,1,0,1,0,1,0,
 					1,0,0,1,0,0,1	};
 
 	tabla = new TABLA(a); env.addObj(tabla);

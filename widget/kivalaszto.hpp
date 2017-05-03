@@ -10,12 +10,13 @@ class KIVALASZTO : public ABLAK
 	private:
 		unsigned int size,size2; // Azért kellenek hogy újat lehessen hozzáadni.
 		SZIN szin2;
+		int kivalasztva;
 	public:
 
 		KIVALASZTO(double x, double y, SZIN szin, SZIN szin2, vector<string> lista, unsigned int size2=0,unsigned int size=8)
 			: ABLAK(x,y,gout.twidth("A")*size+TEXT_RAHAGYAS*3,
 				(gout.cascent()+TEXT_RAHAGYAS*4)*( (size2 ? size2 : lista.size()) +2)+TEXT_RAHAGYAS,
-				szin2,false), size(size), size2(size2)
+				szin2,false), szin2(szin), size(size), size2(size2)
 		{	
 			string gorget;
 			while (gorget.size()<size) gorget+='-';
@@ -27,8 +28,8 @@ class KIVALASZTO : public ABLAK
 				while (lista[i].size()<size) lista[i]+=' ';
 				objektumok.push_back( new STATTEXT(TEXT_RAHAGYAS,TEXT_RAHAGYAS+(gout.cascent()+TEXT_RAHAGYAS*4)*(i+1),szin,szin2,lista[i]) );
 			}
-			ObjKiemel(objektumok[2]);
-			objektumok[objektumok.size()-1]->setter(cin);
+			kivalasztva=2;
+			objektumok[kivalasztva]->setter(cin);
 		}
 
 		bool supdate(event ev, double X0, double Y0, KAMERA kamera); 
@@ -49,9 +50,9 @@ bool KIVALASZTO::supdate(event ev, double X0, double Y0, KAMERA kamera)
 			for (int i = objektumok.size()-1; i >= 2; i--)
 			{
 				if (objektumok[i]->BenneVan(ev.pos_x-ux,ev.pos_y-uy)) {
-					objektumok[objektumok.size()-1]->setter(cin);
+					objektumok[kivalasztva]->setter(cin);
 					objektumok[i]->setter(cin);
-					ObjKiemel(objektumok[i]);
+					kivalasztva=i;
 					return true;
 				}
 			}
@@ -86,7 +87,7 @@ bool KIVALASZTO::supdate(event ev, double X0, double Y0, KAMERA kamera)
 
 void KIVALASZTO::getter(ostream& ki) const 
 {
-	objektumok[objektumok.size()-1]->getter(ki);
+	objektumok[kivalasztva]->getter(ki);
 }
 
 void KIVALASZTO::setter(istream& be)
@@ -94,17 +95,52 @@ void KIVALASZTO::setter(istream& be)
 	string uj;
 	be >> uj;
 
-	while (uj.size()>size) uj = uj.substr(0, uj.size()-1);
-	while (uj.size()<size) uj+=' ';
+	int van = -1; // Ha van ilyen töröljük, ha nincs hozzáadjuk.
 
-	double ox,oy;
-	objektumok[1]->getPosition(ox,oy);
-	objektumok.push_back( new STATTEXT(ox,oy,szin,szin2,uj) );
-	objektumok[1]->setPosition(ox,oy+(gout.cascent()+TEXT_RAHAGYAS*4));
+	for (int i = 2; i < objektumok.size(); ++i)
+	{	
+		stringstream ki;
+		objektumok[i]->getter(ki);
+		string regi;
+		ki >> regi;
+		if (regi==uj) {van=i;break;}
+	}
 
-	objektumok[objektumok.size()-2]->setter(cin); // Ne legyen focusba régi
+	if (van==-1){
+		while (uj.size()>size) uj = uj.substr(0, uj.size()-1);
+		while (uj.size()<size) uj+=' ';
+	
+		double ox,oy;
+		objektumok[1]->getPosition(ox,oy);
+		objektumok.push_back( new STATTEXT(ox,oy,szin2,szin,uj) );
+		objektumok[1]->setPosition(ox,oy+(gout.cascent()+TEXT_RAHAGYAS*4));
+	
+	}else
+	{	
+		double ox1,oy1,ox2,oy2;
+		objektumok[objektumok.size()-1]->getPosition(ox1,oy1); // bezáró elem új poz
+
+		ox2=ox1; oy2=oy1; objektumok[1]->getPosition(ox1,oy1);
+		objektumok[1]->setPosition(ox2,oy2);
+		for (int i = van; i<=objektumok.size()-1 ; ++i) // visszatolja fentről a lyukba a lista elemeit
+		{
+			ox2=ox1; oy2=oy1; objektumok[i]->getPosition(ox1,oy1);
+			objektumok[i]->setPosition(ox2,oy2);
+		} 
+
+		delete objektumok[van];
+		objektumok.erase(objektumok.begin()+van); // És törlés rendeltetés szerűen.
+
+		if (kivalasztva==van) // Ilyen nem lehet a Malom játékban, de máshol igen.
+		{
+			if (kivalasztva==objektumok.size()) kivalasztva--;
+			objektumok[kivalasztva]->setter(cin);
+		}else if(kivalasztva>van)
+		{
+			kivalasztva--;
+		}
+
+	}
 }
-
-
 
 #endif

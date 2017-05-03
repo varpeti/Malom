@@ -1,6 +1,7 @@
 #include "env.hpp"
 #include "lua_adapter.hpp"
 #include "fomenu.hpp"
+#include "beallitasok.hpp"
 #include "jatek.hpp"
 #include <iostream>
 
@@ -11,15 +12,22 @@ int main()
 
 	LuaAdapter lua ("main.lua");
 	
-	ENV env (700,600,false);
+	ENV env (700,600,false); // Fix méretű ablak, fix koordináták és méretek.
 
 	initmenu(env);
+	initbeallitasok(env);
 	initjatek(env);
 
 	int m=0;
 	while ( (m=mainmenu(env)) != 3 )
 	{
-		cout << m << endl;
+		if (m==1)
+		{
+
+		}else if(m==2)
+		{
+			mainbeallitasok(env);
+		}
 	}
 	
 	return 0;

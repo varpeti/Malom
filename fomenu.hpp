@@ -1,19 +1,16 @@
 #include "menu.hpp"
-#include "kivalaszto.hpp"
 
-using namespace genv;
-
-OBJ *mm;
-OBJ *jm;
+static OBJ *mm;
+static OBJ *jm;
 
 void initmenu(ENV &env)
 {
 	if(!env.kepek_beolvas("sp.bmp")) {cout << "Nem talalhato a sp.bmp!\n"; exit(1);}
 
 	std::vector<OBJ*> objs;
-	objs.push_back( new MENUPONT(250,57,200,1*57) );
-	objs.push_back( new MENUPONT(250,57,200,3*57) );
-	objs.push_back( new MENUPONT(250,57,200,5*57) );
+	objs.push_back( new MENUPONT(250,57,0,401) );
+	objs.push_back( new MENUPONT(250,57,0,458) );
+	objs.push_back( new MENUPONT(250,57,0,515) );
 
 	mm = new MENU(25,100,650,57,0,0,objs); env.addObj(mm);
 
@@ -49,9 +46,4 @@ int mainmenu(ENV &env)
 	}
 
 	return 3;
-}
-
-int initbeallmenu()
-{
-	OBJ *ablak = new ABLAK(25,100,650,400,0,0,true);
 }
