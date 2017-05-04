@@ -1,7 +1,6 @@
 #include "menu.hpp"
 
 static OBJ *mm;
-static OBJ *jm;
 
 void initmenu(ENV &env)
 {
@@ -18,7 +17,8 @@ void initmenu(ENV &env)
 
 int mainmenu(ENV &env)
 {
-	gin.timer(20);
+	env.ObjKiemel(mm);
+	mm->setPosition(25,100);
 
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
 
@@ -37,7 +37,7 @@ int mainmenu(ENV &env)
 				mm->getter(str);
 				int kv;
 				str >> kv;
-				if (kv) return kv; // 1 Új játék // 2 infó // 3 kilépés
+				if (kv) {mm->setPosition(999,999); return kv;} // 1 Új játék // 2 infó // 3 kilépés
 			}
 
 		}

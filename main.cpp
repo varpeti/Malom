@@ -3,30 +3,32 @@
 #include "fomenu.hpp"
 #include "beallitasok.hpp"
 #include "jatek.hpp"
+#include "jatekrekord.h"
 #include <iostream>
 
 
 int main()
 {
-	srand(time(0));
-
 	LuaAdapter lua ("main.lua");
 	
 	ENV env (700,600,false); // Fix méretű ablak, fix koordináták és méretek.
+	gin.timer(20);
+
+	Rekord rekord;
 
 	initmenu(env);
-	initbeallitasok(env);
-	initjatek(env);
+	initbeallitasok(env,rekord);
+	initjatek(env,rekord);
 
 	int m=0;
 	while ( (m=mainmenu(env)) != 3 )
 	{
 		if (m==1)
 		{
-
+			mainjatek(env,rekord);
 		}else if(m==2)
 		{
-			mainbeallitasok(env);
+			mainbeallitasok(env,rekord);
 		}
 	}
 	
