@@ -18,14 +18,15 @@ int main()
 
 	initmenu(env);
 	initbeallitasok(env,rekord);
-	initjatek(env,rekord);
 
 	int m=0;
 	while ( (m=mainmenu(env)) != 3 )
 	{
 		if (m==1)
 		{
+			initjatek(env,rekord);
 			mainjatek(env,rekord);
+			endjatek(env,rekord);
 		}else if(m==2)
 		{
 			mainbeallitasok(env,rekord);

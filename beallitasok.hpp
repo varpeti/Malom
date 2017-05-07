@@ -10,7 +10,7 @@ class beallitasok : public ABLAK// Egyepéldányos leszármazott osztály
 		int kattintva;
 	public:
 		beallitasok()
-				: ABLAK(25,100,650,400,0,0,true) // Fix az játékablakméret és a csak 1 példány miatt.
+				: ABLAK(25,100,650,400,0,0,false) // Fix az játékablakméret és a csak 1 példány miatt.
 		{
 
 			objektumok.push_back( new KIVALASZTO(15,30,SZIN(200,200,100),SZIN(20,10,5),{"Red","Green","Cyan","Blue","Magenta"},5) ); //70x149 (1 mező: 31)
@@ -128,11 +128,9 @@ int initbeallitasok(ENV &env,Rekord &rekord)
 {
 	beal = new beallitasok(); env.addObj(beal);
 	beal->setPosition(999,999);
-	rekord.p[0].babu=8;
-	rekord.p[1].babu=8;
 	rekord.p[0].szin=0;
 	rekord.p[1].szin=1;
 	rekord.AI=false;
 	rekord.max_lepesszam=1000;
-	rekord.seed=time(0);
+	rekord.seed=time(0); cout << time(0) << endl;
 }

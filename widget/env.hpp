@@ -46,7 +46,7 @@ class OBJ // Az szülő
 
 	public:
 		OBJ (double x,double y,double sx,double sy,bool mozgathato=true) : x(x), y(y), sx(sx), sy(sy), mozgathato(mozgathato) {lenyomva=false; ex=0; ey=0;};
-		~OBJ () {while(objektumok.size()>0){delete objektumok[objektumok.size()-1]; objektumok.pop_back(); }}; // Minden alosztály tartalmát is kiszedi a memóriából.
+		~OBJ () {while(objektumok.size()>0){delete objektumok[objektumok.size()-1]; objektumok.pop_back(); } cout << this << endl;}; // Minden alosztály tartalmát is kiszedi a memóriából.
 		virtual void srajzol(canvas &Tkepek, double X0, double Y0, double Xb, double Yb, double Xj, double Yj, KAMERA kamera, bool focus) const =0; // sprite, felette, határai b-balfelső j-jobbalsó, kamera
 		virtual bool supdate(event ev, double X0, double Y0, KAMERA kamera) {};
 		virtual void getter(ostream& ki) const {}; // Adatok kiadására jó.
@@ -144,9 +144,9 @@ class ENV
 		bool kepek_beolvas(const char *fname); // BMP-ből olvassa be az összes képet
 	
 	
-	
 		void addObj(OBJ* obj);
 		void ObjKiemel(OBJ *obj); // Előre hozza az objektumot
+		void delObj(OBJ* obj);
 
 	private:
 		vector<OBJ*> objektumok; // Az összes obj
@@ -194,6 +194,17 @@ void ENV::ObjKiemel(OBJ *obj)
 			objektumok.erase(objektumok.begin()+i);
 			return;
 		}
+}
+
+void ENV::delObj(OBJ *obj)
+{	
+	int id;
+	for (int i = 0; i < objektumok.size(); ++i) // Megekerssük az ID-jét
+	{
+		if (objektumok[i]==obj) {id=i;break;}
+	}
+	delete obj;
+	objektumok.erase(objektumok.begin()+id);
 }
 
 void ENV::UpdateDrawHandle()
