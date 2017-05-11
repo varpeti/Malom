@@ -88,8 +88,8 @@ void TABLA::srajzol(canvas &Tkepek, double X0, double Y0, double Xb, double Yb, 
 				c << move_to(nx,ny) << line_to(mx,my);
 			}
 
-			if (m[i]->szom.l) {
-				objektumok[m[i]->szom.l->id]->getPosition(mx,my); mx+=16.5; my+=16.5;
+			if (m[i]->szom.f) {
+				objektumok[m[i]->szom.f->id]->getPosition(mx,my); mx+=16.5; my+=16.5;
 				kamera.getKamCoords(mx,my);
 				c << move_to(nx,ny) << line_to(mx,my);
 			}
@@ -137,12 +137,40 @@ void TABLA::getter(ostream& ki) const
 	if (kattintva==-1) return;
 	stringstream s;
 	objektumok[kattintva]->getter(s);
-	ki << s.str();
+	ki << s.str() << " " << kattintva;
+}
+
+int gethanyadikfromid(Rekord &rekord,int id)
+{
+	for (int i = 0; i < rekord.palya.size(); ++i)
+	{
+		if (id==rekord.palya[i]->id) return i;
+	}
+	return -1;
+}
+
+bool szomszede(vector<int> &szomszedok,int id)
+{
+	for (int i = 0; i < szomszedok.size(); ++i)
+	{
+		if (szomszedok[i]==id) return true;
+	}
+	return false;
+}
+
+void getszomszedok(Rekord &rekord,int i,vector<int> &szomszedok)
+{
+	int id = gethanyadikfromid(rekord,i);
+	if (rekord.palya[id]->szom.b) szomszedok.push_back(rekord.palya[id]->szom.b->id);
+	if (rekord.palya[id]->szom.f) szomszedok.push_back(rekord.palya[id]->szom.f->id);
+	if (rekord.palya[id]->szom.j) szomszedok.push_back(rekord.palya[id]->szom.j->id);
+	if (rekord.palya[id]->szom.l) szomszedok.push_back(rekord.palya[id]->szom.l->id);
 }
 
 bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 {
-	bool felszed=false; // Felvesz mozgatáshoz
+	bool felszedve = false;
+	vector<int> szomszedok;
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
 		env.UpdateDrawHandle();
 		if (env.ev.type==ev_mouse)
@@ -151,21 +179,26 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 			{	
 				stringstream gs,ss;
 				tabla->getter(gs);
-				int ijsz;
+				int ijsz, kat;
 				gs >> ijsz;
-				if (ijsz==6 and rekord.p[jatekos].babu>0) 
+				gs >> kat; cout << kat << endl;
+				//     Üres   és     van bábuja           és vagy nem szedte fel vagy szomszédba rakta le
+				if (ijsz==6 and rekord.p[jatekos].babu>0 and  (!felszedve or szomszede(szomszedok,kat)) ) 
 				{
 					ss << rekord.p[jatekos].szin;
 					tabla->setter(ss);
 					rekord.p[jatekos].babu--;
 					return true; // Átadja a kört
 				}
-				else if (ijsz==rekord.p[jatekos].szin and !felszed)
+				else if (ijsz==rekord.p[jatekos].szin and !felszedve) // Bábu felszedése
 				{
-					ss << 6;
-					tabla->setter(ss);
-					felszed=true;
-					rekord.p[jatekos].babu++;
+					getszomszedok(rekord,kat,szomszedok);
+					if (szomszedok.size()>0){
+						ss << 6;
+						tabla->setter(ss);
+						rekord.p[jatekos].babu++;
+						felszedve=true;
+					}
 				}
 			}else if (env.ev.button==-btn_left)
 			{
