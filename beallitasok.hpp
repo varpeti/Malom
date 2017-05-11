@@ -103,7 +103,10 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 	beal->setPosition(25,100);
 
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
-		if (env.ev.type==ev_mouse and env.ev.button==-btn_left)
+
+		env.UpdateDrawHandle();
+
+		if (env.ev.type==ev_mouse and env.ev.button==btn_left)
 		{
 			stringstream ki;
 			beal->getter(ki);
@@ -119,7 +122,6 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 				break; // Kilépés
 			}
 		}
-		env.UpdateDrawHandle();
 	}
 	beal->setPosition(999,999);
 }
@@ -133,4 +135,5 @@ int initbeallitasok(ENV &env,Rekord &rekord)
 	rekord.AI=false;
 	rekord.max_lepesszam=1000;
 	rekord.seed=time(0); cout << time(0) << endl;
+	// Érdekes seed: 1494524236 izolált mező
 }

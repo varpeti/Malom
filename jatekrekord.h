@@ -6,6 +6,7 @@
 struct Player
 {
 	unsigned int babu;
+	unsigned int lbabu;
 	unsigned int szin;
 };
 
@@ -42,6 +43,7 @@ struct Rekord
 	int max_lepesszam;
 	unsigned int seed;
 	vector<Mezo*> palya;
+	unsigned int nyertes;
 };
 
 #endif

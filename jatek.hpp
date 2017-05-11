@@ -35,9 +35,9 @@ class TABLA : public ABLAK
 	public:
 
 		TABLA(vector<Mezo*> m)
-			: ABLAK(83,33,462,462,683,0,true), m(m)
+			: ABLAK(119,69,462,462,683,0,true), m(m)
 		{	
-			for (int y = 0; y < 7; ++y) // A tábla 7*7-es de csak 24 mező van rajta.
+			for (int y = 0; y < 7; ++y) // A tábla 7*7-es de csak 21 vagy kevesebb mező van rajta.
 			{
 				for (int x = 0; x < 7; ++x)
 				{
@@ -134,10 +134,7 @@ void TABLA::setter(istream& be)
 
 void TABLA::getter(ostream& ki) const 
 {
-	if (kattintva==-1) return;
-	stringstream s;
-	objektumok[kattintva]->getter(s);
-	ki << s.str() << " " << kattintva;
+	ki << kattintva;
 }
 
 int gethanyadikfromid(Rekord &rekord,int id)
@@ -158,18 +155,57 @@ bool szomszede(vector<int> &szomszedok,int id)
 	return false;
 }
 
-void getszomszedok(Rekord &rekord,int i,vector<int> &szomszedok)
+void getszomszedok(Rekord &rekord,int hanyadik,vector<int> &szomszedok) // vissza adja azokat a mezőket amikre szabadon léphet
 {
-	int id = gethanyadikfromid(rekord,i);
-	if (rekord.palya[id]->szom.b) szomszedok.push_back(rekord.palya[id]->szom.b->id);
-	if (rekord.palya[id]->szom.f) szomszedok.push_back(rekord.palya[id]->szom.f->id);
-	if (rekord.palya[id]->szom.j) szomszedok.push_back(rekord.palya[id]->szom.j->id);
-	if (rekord.palya[id]->szom.l) szomszedok.push_back(rekord.palya[id]->szom.l->id);
+	if (rekord.palya[hanyadik]->szom.b and rekord.palya[hanyadik]->szom.b->szin==6) szomszedok.push_back(rekord.palya[hanyadik]->szom.b->id);
+	if (rekord.palya[hanyadik]->szom.f and rekord.palya[hanyadik]->szom.f->szin==6) szomszedok.push_back(rekord.palya[hanyadik]->szom.f->id);
+	if (rekord.palya[hanyadik]->szom.j and rekord.palya[hanyadik]->szom.j->szin==6) szomszedok.push_back(rekord.palya[hanyadik]->szom.j->id);
+	if (rekord.palya[hanyadik]->szom.l and rekord.palya[hanyadik]->szom.l->szin==6) szomszedok.push_back(rekord.palya[hanyadik]->szom.l->id);
+}
+
+bool malome(Rekord &rekord,int hanyadik,int irany=0) // visszaadja hogy malomba rakták-e
+{
+	int szin = rekord.palya[hanyadik]->szin;
+
+	if (rekord.palya[hanyadik]->szom.b and rekord.palya[hanyadik]->szom.j and (!irany or irany==1 or irany==3) and rekord.palya[hanyadik]->szom.b->szin==szin and rekord.palya[hanyadik]->szom.j->szin==szin) return true; // Ha mellete ugyan olyanok
+	if (rekord.palya[hanyadik]->szom.f and rekord.palya[hanyadik]->szom.l and (!irany or irany==2 or irany==4) and rekord.palya[hanyadik]->szom.f->szin==szin and rekord.palya[hanyadik]->szom.l->szin==szin) return true; // Ha felette alatta ugyan olyanok
+
+	// Ha nem rekurzívan elmozgunk de csak egy vonalban.
+	if ((!irany or irany==1) and rekord.palya[hanyadik]->szom.b and rekord.palya[hanyadik]->szom.b->szin==szin) if ( malome(rekord,gethanyadikfromid(rekord,rekord.palya[hanyadik]->szom.b->id),1) ) return true;
+	if ((!irany or irany==2) and rekord.palya[hanyadik]->szom.f and rekord.palya[hanyadik]->szom.f->szin==szin) if ( malome(rekord,gethanyadikfromid(rekord,rekord.palya[hanyadik]->szom.f->id),2) ) return true;
+	if ((!irany or irany==3) and rekord.palya[hanyadik]->szom.j and rekord.palya[hanyadik]->szom.j->szin==szin) if ( malome(rekord,gethanyadikfromid(rekord,rekord.palya[hanyadik]->szom.j->id),3) ) return true;
+	if ((!irany or irany==4) and rekord.palya[hanyadik]->szom.l and rekord.palya[hanyadik]->szom.l->szin==szin) if ( malome(rekord,gethanyadikfromid(rekord,rekord.palya[hanyadik]->szom.l->id),4) ) return true;
+	return false; 
+}
+
+bool vanenemmalom(Rekord &rekord, int szin) // Vissza adja hogy van e olyan bábú ami nem malomban van adott szinben
+{
+	for (int i = 0; i < 49; ++i)
+	{
+		if (rekord.palya[i]->szin==szin and !malome(rekord,i)) return true;
+	}
+	return false;
+}
+
+bool tudelepni(Rekord &rekord, int szin)
+{
+	for (int i = 0; i < 49; ++i)
+	{
+		if (rekord.palya[i]->szin==szin) 
+		{
+			vector<int> szomszedok;
+			getszomszedok(rekord,i,szomszedok);
+			if (szomszedok.size()>0) return true;
+		}
+	}
+	return false;
 }
 
 bool lepes(bool jatekos,ENV &env,Rekord &rekord)
-{
+{	// Ha kevesebb mint három bábuja van vagy ha játékban nem tud lépni veszít
+	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin)) ) {rekord.nyertes=!jatekos+1; return false;} 
 	bool felszedve = false;
+	bool uthet = false;
 	vector<int> szomszedok;
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
 		env.UpdateDrawHandle();
@@ -179,48 +215,70 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 			{	
 				stringstream gs,ss;
 				tabla->getter(gs);
-				int ijsz, kat;
-				gs >> ijsz;
-				gs >> kat; cout << kat << endl;
-				//     Üres   és     van bábuja           és vagy nem szedte fel vagy szomszédba rakta le
-				if (ijsz==6 and rekord.p[jatekos].babu>0 and  (!felszedve or szomszede(szomszedok,kat)) ) 
+
+				int ijsz,id,hanyadik;
+
+				gs >> id;
+				if (id==-1) continue; // A pálya lényegtelen részére kattintottak
+
+				hanyadik = gethanyadikfromid(rekord,id);
+				ijsz = rekord.palya[hanyadik]->szin;
+
+				//     Üres   és     van bábuja           és (vagy nem szedte fel vagy szomszédba rakta le vagy ugrálhat) és nem utésben van
+				if (ijsz==6 and rekord.p[jatekos].babu>0 and (!felszedve or szomszede(szomszedok,id) or rekord.p[jatekos].lbabu==3) and !uthet ) 
 				{
 					ss << rekord.p[jatekos].szin;
-					tabla->setter(ss);
+					tabla->setter(ss); // Megjelenítés;
+					rekord.palya[hanyadik]->szin = rekord.p[jatekos].szin; // Játékmenet;
 					rekord.p[jatekos].babu--;
-					return true; // Átadja a kört
+					if (malome(rekord,hanyadik)) uthet=true;
+					else 	return true; // Ha nem malomba lépett átadja a kört
 				}
-				else if (ijsz==rekord.p[jatekos].szin and !felszedve) // Bábu felszedése
+				//        Sajátját fogta meg        és még nem szedett fel és nem ütésben van  
+				else if (ijsz==rekord.p[jatekos].szin and !felszedve and !uthet) // Bábu felszedése
 				{
-					getszomszedok(rekord,kat,szomszedok);
+					getszomszedok(rekord,hanyadik,szomszedok);
 					if (szomszedok.size()>0){
 						ss << 6;
-						tabla->setter(ss);
+						tabla->setter(ss); // Megjelenés;
+						rekord.palya[hanyadik]->szin = 6; // Játékmenet;
 						rekord.p[jatekos].babu++;
 						felszedve=true;
 					}
 				}
-			}else if (env.ev.button==-btn_left)
-			{
-
+				// Az ellenség bábuját fogta meg, és ütésben van
+				else if (uthet and ijsz==rekord.p[!jatekos].szin)
+				{
+					// Nincs malomban vagy minden malomban van
+					if (!malome(rekord,hanyadik) or !vanenemmalom(rekord,rekord.p[!jatekos].szin) )
+					{
+						ss << 6;
+						tabla->setter(ss); // Megjelenés;
+						rekord.palya[hanyadik]->szin = 6; // Játékmenet;
+						rekord.p[!jatekos].lbabu--; // Azt számolja mennyi bábuja van még játékban
+					return true; // Ütés végével vége a körnek.
+					}
+				}
 			}
 		}
 	}
 	return false; // Kilép a menübe
 }
 
-void mainjatek(ENV &env,Rekord &rekord)
+int mainjatek(ENV &env,Rekord &rekord)
 {	
 	env.ObjKiemel(tabla);
-	tabla->setPosition(83,33);
+	tabla->setPosition(119,69);
 
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
 		if (!lepes(0,env,rekord)) break;
 		if (!lepes(1,env,rekord)) break;
 	}
 
-
 	tabla->setPosition(999,999);
+
+	return (rekord.p[0].lbabu<3) + (rekord.p[1].lbabu<3)*2;
+
 }
 
 bool okxy(vector<Mezo*> m,int xx,int yy)
@@ -282,6 +340,11 @@ void initjatek(ENV &env,Rekord &rekord)
 
 	rekord.p[0].babu= (rekord.p[0].babu==8 ? 8 : 7); // easter egg jutalma
 	rekord.p[1].babu=7;
+
+	rekord.p[0].lbabu=rekord.p[0].babu;
+	rekord.p[1].lbabu=rekord.p[1].babu;
+
+	rekord.nyertes=0;
 
 	tabla = new TABLA(rekord.palya); env.addObj(tabla);
 	tabla->setPosition(999,999);

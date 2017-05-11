@@ -22,16 +22,11 @@ int mainmenu(ENV &env)
 
 	while(gin >> env.ev and env.ev.keycode!=key_escape) {
 
-		if (env.ev.type==ev_timer){
-			
-		} 
-		else if (env.ev.type==ev_key)
+		env.UpdateDrawHandle();
+		
+		if (env.ev.type==ev_mouse)
 		{
-
-		}
-		else if (env.ev.type==ev_mouse)
-		{
-			if (env.ev.button==-btn_left) // Gomb felengedésnél nézzük meg hogy melyik lett lenyomva.
+			if (env.ev.button==btn_left) // Gomb felengedésnél nézzük meg hogy melyik lett lenyomva.
 			{
 				stringstream str;
 				mm->getter(str);
@@ -41,8 +36,6 @@ int mainmenu(ENV &env)
 			}
 
 		}
-
-		env.UpdateDrawHandle();
 	}
 
 	return 3;
