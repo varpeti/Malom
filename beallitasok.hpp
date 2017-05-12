@@ -10,14 +10,14 @@ class beallitasok : public ABLAK// Egyepéldányos leszármazott osztály
 		int kattintva;
 	public:
 		beallitasok()
-				: ABLAK(25,100,650,400,0,0,false) // Fix az játékablakméret és a csak 1 példány miatt.
+				: ABLAK(25,100,650,400,0,0,true) // Fix, az játékablakméret és a csak 1 példány miatt.
 		{
 
 			objektumok.push_back( new KIVALASZTO(15,30,SZIN(200,200,100),SZIN(20,10,5),{"Red","Green","Cyan","Blue","Magenta"},5) ); //70x149 (1 mező: 31)
 			objektumok.push_back( new KIVALASZTO(100,30,SZIN(200,200,100),SZIN(20,10,5),{"Yellow","Green","Cyan","Blue","Magenta"},5) );
 			objektumok.push_back( new STATTEXT(15,10,SZIN(200,200,100),SZIN(20,10,5),"   P1    |    P2   ") );
-			objektumok.push_back( new STATTEXT(185,10,SZIN(200,200,100),SZIN(20,10,5)," Maximum number of steps ") );
-			objektumok.push_back( new SZAMBEALLITO(188,30,0,10000,SZIN(200,200,100),SZIN(20,10,5),1000,20) );
+			objektumok.push_back( new STATTEXT(185,10,SZIN(200,200,100),SZIN(20,10,5),"        SeeD        ") );
+			objektumok.push_back( new SZAMBEALLITO(188,30,0,9e99,SZIN(200,200,100),SZIN(20,10,5),time(0),15) );
 			objektumok.push_back( new ABLAK(390,333,250,57,0,515));
 			//objektumok.push_back( new ABLAK(15,333,250,57,0,401)); TODO: Alkalmaz | Mégse
 			kattintva=-1;
@@ -95,6 +95,8 @@ void beallitasok::getter(ostream& ki) const
 	ki << miaszine(s) << " "; seged.str("");
 	objektumok[4]->getter(seged);
 	ki << seged.str() << " ";
+
+	ki << false << " "; // AI
 }
 
 void mainbeallitasok(ENV &env,Rekord &rekord)
@@ -112,17 +114,19 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 			beal->getter(ki);
 			string gomb;
 			ki >> gomb;
-			if (gomb=="5") { // Ha a vissza gomb lett megnyomva
-				rekord.p[0].babu=8;
-				rekord.p[1].babu=8;
-				ki >> rekord.p[0].szin;
-				ki >> rekord.p[1].szin;
-				ki >> rekord.max_lepesszam;
-				rekord.AI=false;
-				break; // Kilépés
-			}
+			if (gomb=="5") break; // Kilépés
 		}
 	}
+
+	stringstream ki;
+	beal->getter(ki);
+	string kuka;
+	ki >> kuka;
+	ki >> rekord.p[0].szin;
+	ki >> rekord.p[1].szin;
+	ki >> rekord.seed; cout << rekord.seed << endl; // Érdekes seed: 1494524236 izolált mező
+	ki >> rekord.AI; cout << rekord.AI << endl;
+
 	beal->setPosition(999,999);
 }
 
@@ -130,10 +134,9 @@ int initbeallitasok(ENV &env,Rekord &rekord)
 {
 	beal = new beallitasok(); env.addObj(beal);
 	beal->setPosition(999,999);
+
 	rekord.p[0].szin=0;
 	rekord.p[1].szin=1;
+	rekord.seed=time(0); cout << rekord.seed << endl;
 	rekord.AI=false;
-	rekord.max_lepesszam=1000;
-	rekord.seed=time(0); cout << time(0) << endl;
-	// Érdekes seed: 1494524236 izolált mező
 }

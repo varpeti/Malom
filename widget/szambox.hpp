@@ -2,6 +2,7 @@
 #define _SZAMBOX_
 
 #include "textbox.hpp"
+#include <iomanip>
 
 class SZAMBOX : public TEXTBOX
 {
@@ -18,7 +19,7 @@ class SZAMBOX : public TEXTBOX
 			: TEXTBOX(x,y,size,szin,szin2,"0"), A(A), B(B), szam(bszam>A ? bszam<B ? bszam : B : A)
 		{
 			sx=gout.twidth("0")*size+TEXT_RAHAGYAS;
-			ostringstream strs; strs << szam; szoveg2 = strs.str();
+			ostringstream strs; strs << setprecision(size) << szam; szoveg2 = strs.str();
 			szoveg=szoveg2;
 			while (szoveg.size()>size) szoveg = szoveg.substr(1, szoveg.size());
 		}
@@ -40,7 +41,7 @@ bool SZAMBOX::supdate(event ev, double X0, double Y0, KAMERA kamera)
 		else if (ev.keycode==key_home) {szam=B; ev.keycode=key_enter;} // MAX
 		else if (ev.keycode==key_end ) {szam=A; ev.keycode=key_enter;} // MIN
 
-		if (ev.keycode==key_enter) {ostringstream strs; strs << szam; szoveg2 = strs.str();} //Enter után az értelmezhető számot kiírja.
+		if (ev.keycode==key_enter) {ostringstream strs; strs << setprecision(size) << szam; szoveg2 = strs.str();} //Enter után az értelmezhető számot kiírja.
 
 		szam = atof(szoveg2.c_str()); // Ha ki tudja írni rendesen
 		szam = szam>A ? szam<B ? szam : B : A; // Határértékek között tartás

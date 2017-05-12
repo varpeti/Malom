@@ -5,8 +5,8 @@
 
 struct Player
 {
-	unsigned int babu;
-	unsigned int lbabu;
+	unsigned int babu; // Kézben lévő bábuk száma
+	unsigned int lbabu; // Játékban lévő bábuk száma
 	unsigned int szin;
 };
 
@@ -22,10 +22,10 @@ struct Szomszed
 
 struct Mezo
 {
-	unsigned int id;
+	unsigned int id; // Sorfolytonosan a léphető mezők 0-tól
 	unsigned int szin;
 	Szomszed szom;
-	Mezo() // Todo: minden mező vele egvonalba lővő mezők pointereit ismernie kell.
+	Mezo()
 	{
 		id=-1;
 		szin=9;
@@ -40,7 +40,6 @@ struct Rekord
 {
 	Player p[2];
 	bool AI;
-	int max_lepesszam;
 	unsigned int seed;
 	vector<Mezo*> palya;
 	unsigned int nyertes;
