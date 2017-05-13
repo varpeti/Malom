@@ -56,7 +56,7 @@ bool SZAMBOX::supdate(event ev, double X0, double Y0, KAMERA kamera)
 
 void SZAMBOX::getter(ostream& ki) const 
 {
-	ki << szam;
+	ki << setprecision(size) << szam;
 };
 
 

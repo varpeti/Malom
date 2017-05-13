@@ -24,8 +24,8 @@ int main()
 	{
 		if (m==1)
 		{
-			initjatek(env,rekord);
-			mainjatek(env,rekord);
+			initjatek(env,rekord); // Megvan a lehetőség hogy "Új játék" és "Folytatás" menüpont legyen. // Ha elegen megveszik legyen mit patchelni :D
+			mainjatek(env,rekord); 
 			endjatek(env,rekord);
 		}else if(m==2)
 		{

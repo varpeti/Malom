@@ -70,12 +70,12 @@ bool tudelepni(Rekord &rekord, int szin)
 }
 
 bool lepes(bool jatekos,ENV &env,Rekord &rekord)
-{	// Ha kevesebb mint három bábuja van vagy ha játékban nem tud lépni, veszít
-	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin)) ) {rekord.nyertes=!jatekos+1; return false;} 
+{	// Ha kevesebb mint három bábuja van vagy (ha a kezébe 0 bábu és játékban nem tud lépni                        úgy hogy 3-nál több bábuja van),         veszít
+	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin and !rekord.p[jatekos].lbabu==3)) ) {rekord.nyertes=!jatekos+1; return false;} 
 	
 	{
 		stringstream str;
-		str << rekord.p[jatekos].szin << " "  << rekord.p[jatekos].babu;
+		str << rekord.p[jatekos].szin << " "  << rekord.p[jatekos].babu; // szín, kézben lévő bábuk száma, győzelem.
 		kijelzo->setter(str);
 	}
 
@@ -114,7 +114,7 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 				else if (ijsz==rekord.p[jatekos].szin and !felszedve and !uthet) // Bábu felszedése
 				{
 					getszomszedok(rekord,hanyadik,szomszedok);
-					if (szomszedok.size()>0){
+					if (szomszedok.size()>0 or rekord.p[jatekos].lbabu==3){ // Ha csak 3 bábuja van nem kell hogy csak szomszédba léphessen
 						ss << 6;
 						tabla->setter(ss); // Megjelenés;
 						rekord.palya[hanyadik]->szin = 6; // Játékmenet;
@@ -141,7 +141,7 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 	return false; // Kilép a menübe
 }
 
-int mainjatek(ENV &env,Rekord &rekord)
+void mainjatek(ENV &env,Rekord &rekord)
 {	
 	env.ObjKiemel(tabla);
 	tabla->setPosition(119,69);
@@ -154,7 +154,17 @@ int mainjatek(ENV &env,Rekord &rekord)
 
 	tabla->setPosition(999,999);
 
-	return (rekord.p[0].lbabu<3) + (rekord.p[1].lbabu<3)*2;
+	if (rekord.nyertes) {
+		OBJ * victory = new ABLAK(225,272,250,57,250,401,true); env.addObj(victory);
+		stringstream str;
+		str << rekord.p[rekord.nyertes-1].szin << " " << 0; // szín, 0
+		kijelzo->setter(str);
+		kijelzo->setPosition(420,284);
+		env.ObjKiemel(kijelzo);
+		while(gin >> env.ev and env.ev.type!=ev_key) {env.UpdateDrawHandle();}
+		env.delObj(victory);
+	}
+	
 
 }
 
@@ -197,26 +207,63 @@ void initjatek(ENV &env,Rekord &rekord)
 		rekord.palya.push_back(new Mezo);
 	}
 
-	int mezoszam=0, lepes=0;
-	while(mezoszam<21 and lepes<999) // Ez egy fair pálya generáló, ha ezer lépésből megvan.
-	{
-		int xx = rand()%7;
-		int yy = rand()%7;
-		if ( rekord.palya[xx+yy*7]->szin==9 and okxy(rekord.palya,xx,yy)) {rekord.palya[xx+yy*7]->szin=6; mezoszam++;}
-		lepes++;
+	if (!rekord.Classic){
+		int mezoszam=0, lepes=0;
+		while(mezoszam<21 and lepes<999) // Ez egy fair pálya generáló, ha ezer lépésből megvan.
+		{
+			int xx = rand()%7;
+			int yy = rand()%7;
+			if ( rekord.palya[xx+yy*7]->szin==9 and okxy(rekord.palya,xx,yy)) {rekord.palya[xx+yy*7]->szin=6; mezoszam++;}
+			lepes++;
+		}
+	
+		int i=0;
+		while(mezoszam<21 and i<49) // Ha nem lett meg ezerből, sorba megy és berakja oda ahol hiányzik.
+		{
+			if ( rekord.palya[i]->szin==9 and okxy(rekord.palya,i%7,i/7)) {rekord.palya[i]->szin=6; mezoszam++;}
+			i++;
+		}
+	
+		vonalaz(rekord.palya,0,0); // Ha nem léphető mező akkor elöbb keres egyet.
+	
+		// BUG: Létezhet olyan szituáció hogy 1 izolált pont van a pályán (nagyon kicsi esély), és ez az izolált pont az első sorban van (Hihetetlenül kicsi esély).
+		// Ekkor a program nem vonalaz, nem jelöli be a szomszédokat.
+		// Ezzel a sorral lehet megoldani a problémát, csak az esetek 100-Epszilon százalékában felesleges.
+		vonalaz(rekord.palya,0,1);
+
+		rekord.p[0].babu=7;
+		rekord.p[1].babu=7;
+
+	}else // Classikus 24 mezős pálya
+	{	//	  0123456
+		//  0 0--0--0
+		//  1 |0-0-0|
+		//  2 ||000||
+		//  3 000 000
+		//  4 ||000||
+		//  5 |0-0-0|
+		//  6 0--0--0
+
+		for (int i = 0; i < 49;) // Ez a cuki szabály írja le a pályát :D
+		{
+			rekord.palya[i]->szin=6;
+			if ( i==(5+1*7) or i==(4+4*7) ) i+=4;
+			else if ( i<(6+0*7) or i==(4+2*7) or i==(6+3*7) or i>=(0+6*7) ) i+=3;
+			else if ( i<(5+1*7) or i==(2+3*7) or (i>=(1+5*7) and i<(0+6*7)) ) i+=2;
+			else i+=1;
+		}
+
+		vonalaz(rekord.palya,0,0);
+
+		rekord.palya[3+2*7]->szom.l=NULL; // Nem kellenek ezek a szomszédok.
+		rekord.palya[2+3*7]->szom.j=NULL;
+		rekord.palya[4+3*7]->szom.b=NULL;
+		rekord.palya[3+4*7]->szom.f=NULL;
+
+
+		rekord.p[0].babu=9;
+		rekord.p[1].babu=9;
 	}
-
-	int i=0;
-	while(mezoszam<21 and i<49) // Ha nem lett meg ezerből, sorba megy és berakja oda ahol hiányzik. 
-	{
-		if ( rekord.palya[i]->szin==9 and okxy(rekord.palya,i%7,i/7)) {rekord.palya[i]->szin=6; mezoszam++;}
-		i++;
-	}
-
-	vonalaz(rekord.palya,0,0); // Ha nem léphető mező akkor elöbb keres egyet.
-
-	rekord.p[0].babu=7;
-	rekord.p[1].babu=7;
 
 	rekord.p[0].lbabu=rekord.p[0].babu;
 	rekord.p[1].lbabu=rekord.p[1].babu;

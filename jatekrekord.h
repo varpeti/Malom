@@ -43,6 +43,7 @@ struct Rekord
 	unsigned int seed;
 	vector<Mezo*> palya;
 	unsigned int nyertes;
+	bool Classic;
 };
 
 #endif

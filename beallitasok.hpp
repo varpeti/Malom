@@ -1,6 +1,7 @@
 #include "kivalaszto.hpp"
 #include "szambeallito.hpp"
 #include "jatekrekord.h"
+#include "kijelzo.hpp"
 
 static OBJ *beal;
 
@@ -19,7 +20,11 @@ class beallitasok : public ABLAK// Egyepéldányos leszármazott osztály
 			objektumok.push_back( new STATTEXT(185,10,SZIN(200,200,100),SZIN(20,10,5),"        SeeD        ") );
 			objektumok.push_back( new SZAMBEALLITO(188,30,0,9e99,SZIN(200,200,100),SZIN(20,10,5),time(0),15) );
 			objektumok.push_back( new ABLAK(390,333,250,57,0,515));
-			//objektumok.push_back( new ABLAK(15,333,250,57,0,401)); TODO: Alkalmaz | Mégse
+			objektumok.push_back( new STATTEXT(185,90,SZIN(200,200,100),SZIN(20,10,5),"   AI     Classic   ") );
+			objektumok.push_back( new KIJELZO(201,111,6) ); //7
+			objektumok.push_back( new KIJELZO(277,111,6) ); //8
+
+			//objektumok.push_back( new ABLAK(15,333,250,57,0,401)); Lehetne Alkalmaz | Mégse gombokat is csinálni. // Majd kövi patch ez is :D
 			kattintva=-1;
 		};
 	
@@ -54,7 +59,16 @@ bool beallitasok::supdate(event ev, double X0, double Y0, KAMERA kamera)
 						objektumok[b]->getter(babu);
 						objektumok[!b]->setter(babu); // Mostani törlése a másikból
 
-					}else // Nem a listába kattintottak
+					}else if (i>6 and i<9)
+					{
+						stringstream g,s;
+						objektumok[i]->getter(g);
+						int szine;
+						g >> szine; 
+						szine = (szine==6?7:6);
+						s << szine << " " << 0;
+						objektumok[i]->setter(s);
+					}else // Nem a listába vagy a check dobozokba kattintottak.
 					{
 						objektumok[i]->supdate(ev,x+X0,y+Y0,kamera);
 					}
@@ -89,14 +103,18 @@ void beallitasok::getter(ostream& ki) const
 	objektumok[0]->getter(seged);
 	string s;
 	seged >> s;
-	ki << kattintva << " " << miaszine(s) << " "; seged.str("");
+	ki << kattintva << " " << miaszine(s) << " "; seged.str(""); //Gomb, szin1
 	objektumok[1]->getter(seged);
 	seged >> s;
-	ki << miaszine(s) << " "; seged.str("");
+	ki << miaszine(s) << " "; seged.str(""); // szin2
 	objektumok[4]->getter(seged);
-	ki << seged.str() << " ";
-
-	ki << false << " "; // AI
+	ki << seged.str() << " "; seged.str(""); // SeeD
+	objektumok[7]->getter(seged);
+	int szine; seged >> szine;
+	ki << (szine==7) << " "; seged.clear(); // AI
+	objektumok[8]->getter(seged);
+	seged >> szine;
+	ki << (szine==7) << " "; // Classic
 }
 
 void mainbeallitasok(ENV &env,Rekord &rekord)
@@ -125,7 +143,9 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 	ki >> rekord.p[0].szin;
 	ki >> rekord.p[1].szin;
 	ki >> rekord.seed; cout << rekord.seed << endl; // Érdekes seed: 1494524236 izolált mező
-	ki >> rekord.AI; cout << rekord.AI << endl;
+	ki >> rekord.AI;
+	ki >> rekord.Classic;
+	cout << rekord.AI << rekord.Classic << endl;
 
 	beal->setPosition(999,999);
 }
@@ -139,4 +159,5 @@ int initbeallitasok(ENV &env,Rekord &rekord)
 	rekord.p[1].szin=1;
 	rekord.seed=time(0); cout << rekord.seed << endl;
 	rekord.AI=false;
+	rekord.Classic=false;
 }

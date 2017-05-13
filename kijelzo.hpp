@@ -1,6 +1,9 @@
+#ifndef _KIJELZO_	//ujabb definíció és fordítási hiba elkerülésére
+#define _KIJELZO_
+
 #include "ablak.hpp"
 
-class KIJELZO : public ABLAK // A mező amin valamelyik játékos áll vagy állhat.
+class KIJELZO : public ABLAK
 {
 	string puffer;
 public:
@@ -12,15 +15,21 @@ public:
 
 	void setter(istream& be);
 	void addObj(OBJ *obj) {}; // Nem lehet hozzáadni újabb objektumokoat.
+	void getter(ostream& ki) const;
 };
 
-void KIJELZO::setter(istream& be) // A setterbe 0-6ig vár színt.
+void KIJELZO::setter(istream& be)
 {
 	int szine,db;
 	be >> szine;
 	be >> db;
 	if (db) {stringstream str; str << db; str >> puffer;} else puffer="";
 	ky=szine*33+1;
+}
+
+void KIJELZO::getter(ostream& ki) const // Csak ha check boxot "játszik" akkor kell. Amíg nem szinkronizál a nem widgetben tárolt adatokkal.
+{
+	ki << (ky-1)/33;
 }
 
 void KIJELZO::srajzol(canvas &Tkepek, double X0, double Y0, double Xb, double Yb, double Xj, double Yj, KAMERA kamera, bool focus) const
@@ -43,3 +52,5 @@ void KIJELZO::srajzol(canvas &Tkepek, double X0, double Y0, double Xb, double Yb
 	c << color(255,255,255) << move_to(sx*3/8,sy*2/3) << text(puffer);
 	gout << stamp(c,x,y);
 }
+
+#endif
