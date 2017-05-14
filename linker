@@ -8,7 +8,7 @@ fordito="g++"
 projectfileok="main.cpp"
 parameterek="-std=c++14 -Lflugigraph -Iflugigraph -lgraphics -lSDL -lSDL_ttf -Iwidget -Ilua5.3.4/include -Llua5.3.4/lib -ILuaBridge -lm -llua -ldl -lpthread"
 nev="main.run"
-futtatas=true
+futtatas=false
 ########################################################
 
 
@@ -26,7 +26,7 @@ fi
 
 $fordito $projectfileok $parameterek "-o" $nev
 
-if [[ $futtatas && -f $nev ]]; then
+if [[ "$futtatas" = true && -f $nev ]]; then
 	timeout 4s gnome-terminal -x $nev;
 fi
 ########################################################
