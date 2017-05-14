@@ -36,6 +36,13 @@ struct Mezo
 	}
 };
 
+struct Move
+{
+	int hova;
+	int honnan;
+	int leutotte;
+};
+
 struct Rekord
 {
 	Player p[2];
@@ -44,6 +51,7 @@ struct Rekord
 	vector<Mezo*> palya;
 	unsigned int nyertes;
 	bool Classic;
+	Move lastmove;
 };
 
 #endif

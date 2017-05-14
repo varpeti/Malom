@@ -119,8 +119,9 @@ bool TABLA::supdate(event ev, double X0, double Y0, KAMERA kamera)
 
 void TABLA::setter(istream& be)
 {
-	if (kattintva==-1) return;
-	objektumok[kattintva]->setter(be);
+	int id;
+	be >> id;
+	objektumok[id]->setter(be);
 }
 
 void TABLA::getter(ostream& ki) const 

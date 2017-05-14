@@ -1,5 +1,4 @@
 #include "env.hpp"
-#include "lua_adapter.hpp"
 #include "fomenu.hpp"
 #include "beallitasok.hpp"
 #include "jatek.hpp"
@@ -8,11 +7,9 @@
 
 
 int main()
-{
-	LuaAdapter lua ("main.lua");
-	
+{	
 	ENV env (700,600,false); // Fix méretű ablak, fix koordináták és méretek.
-	gin.timer(20);
+	env.timer(20);
 
 	Rekord rekord;
 
@@ -25,7 +22,7 @@ int main()
 		if (m==1)
 		{
 			initjatek(env,rekord); // Megvan a lehetőség hogy "Új játék" és "Folytatás" menüpont legyen. // Ha elegen megveszik legyen mit patchelni :D
-			mainjatek(env,rekord); 
+			mainjatek(env,rekord);
 			endjatek(env,rekord);
 		}else if(m==2)
 		{

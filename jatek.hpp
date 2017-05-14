@@ -2,6 +2,9 @@
 #include "kijelzo.hpp"
 #include "tabla.hpp"
 
+#include "lua.hpp"
+#include <thread>
+
 static OBJ *tabla;
 static OBJ *kijelzo;
 
@@ -70,7 +73,10 @@ bool tudelepni(Rekord &rekord, int szin)
 }
 
 bool lepes(bool jatekos,ENV &env,Rekord &rekord)
-{	// Ha kevesebb mint három bábuja van vagy (ha a kezébe 0 bábu és játékban nem tud lépni                        úgy hogy 3-nál több bábuja van),         veszít
+{	
+	rekord.lastmove.hova=-1; rekord.lastmove.honnan=-1; rekord.lastmove.leutotte=-1;
+
+	// Ha kevesebb mint három bábuja van vagy (ha a kezébe 0 bábu és játékban nem tud lépni						úgy hogy 3-nál több bábuja van),		 veszít
 	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin and !rekord.p[jatekos].lbabu==3)) ) {rekord.nyertes=!jatekos+1; return false;} 
 	
 	{
@@ -100,25 +106,27 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 				hanyadik = gethanyadikfromid(rekord,id);
 				ijsz = rekord.palya[hanyadik]->szin;
 
-				//     Üres   és     van bábuja           és (vagy nem szedte fel vagy szomszédba rakta le vagy ugrálhat) és nem utésben van
+				//	 Üres   és	 van bábuja		   és (vagy nem szedte fel vagy szomszédba rakta le vagy ugrálhat) és nem utésben van
 				if (ijsz==6 and rekord.p[jatekos].babu>0 and (!felszedve or szomszede(szomszedok,id) or rekord.p[jatekos].lbabu==3) and !uthet ) 
 				{
-					ss << rekord.p[jatekos].szin;
+					ss << id << " " <<rekord.p[jatekos].szin;
 					tabla->setter(ss); // Megjelenítés;
 					rekord.palya[hanyadik]->szin = rekord.p[jatekos].szin; // Játékmenet;
 					rekord.p[jatekos].babu--;
+					rekord.lastmove.hova=id;
 					if (malome(rekord,hanyadik)) uthet=true;
 					else 	return true; // Ha nem malomba lépett átadja a kört
 				}
-				//        Sajátját fogta meg        és még nem szedett fel és nem ütésben van  
+				//		Sajátját fogta meg		és még nem szedett fel és nem ütésben van  
 				else if (ijsz==rekord.p[jatekos].szin and !felszedve and !uthet) // Bábu felszedése
 				{
 					getszomszedok(rekord,hanyadik,szomszedok);
 					if (szomszedok.size()>0 or rekord.p[jatekos].lbabu==3){ // Ha csak 3 bábuja van nem kell hogy csak szomszédba léphessen
-						ss << 6;
+						ss << id << " " << 6;
 						tabla->setter(ss); // Megjelenés;
 						rekord.palya[hanyadik]->szin = 6; // Játékmenet;
 						rekord.p[jatekos].babu++;
+						rekord.lastmove.honnan=id;
 						felszedve=true;
 					}
 				}
@@ -128,18 +136,122 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 					// Nincs malomban vagy minden malomban van
 					if (!malome(rekord,hanyadik) or !vanenemmalom(rekord,rekord.p[!jatekos].szin) )
 					{
-						ss << 6;
+						ss << id << " " << 6;
 						tabla->setter(ss); // Megjelenés;
 						rekord.palya[hanyadik]->szin = 6; // Játékmenet;
 						rekord.p[!jatekos].lbabu--; // Azt számolja mennyi bábuja van még játékban
+						rekord.lastmove.leutotte=id;
 					return true; // Ütés végével vége a körnek.
 					}
 				}
 			}
+			cout << "a: " << felszedve << uthet << endl;
 		}
 	}
 	return false; // Kilép a menübe
 }
+
+void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami a a kommunikációs csatorna a lua és a c++ között
+{
+	lua_State* L = luaL_newstate();
+	luaL_loadfile(L, "main.lua");
+	luaL_openlibs(L);
+	lua_pcall(L, 0, 0, 0);
+
+	lua_newtable(L); //palya
+		for (int i = 0; i < rekord->palya.size(); ++i)
+		{
+			if (rekord->palya[i]->szin!=9)
+			{
+				lua_newtable(L); //mezo
+					lua_pushnumber(L,rekord->palya[i]->id+1); 
+					lua_setfield(L, -2, "id");
+
+					lua_pushnumber(L,rekord->palya[i]->szin); 
+					lua_setfield(L, -2, "szin");
+
+					if (rekord->palya[i]->szom.b) lua_pushnumber(L,rekord->palya[i]->szom.b->id+1); 
+						else lua_pushnumber(L,0);
+					lua_setfield(L,-2,"b");
+					if (rekord->palya[i]->szom.f) lua_pushnumber(L,rekord->palya[i]->szom.f->id+1); 
+						else lua_pushnumber(L,0);
+					lua_setfield(L,-2,"f");
+					if (rekord->palya[i]->szom.j) lua_pushnumber(L,rekord->palya[i]->szom.j->id+1); 
+						else lua_pushnumber(L,0);
+					lua_setfield(L,-2,"j");
+					if (rekord->palya[i]->szom.l) lua_pushnumber(L,rekord->palya[i]->szom.l->id+1); 
+						else lua_pushnumber(L,0);
+					lua_setfield(L,-2,"l");
+				lua_rawseti(L, -2, rekord->palya[i]->id+1);
+			}
+		}
+	lua_setglobal(L, "palya");
+
+	lua_pushnumber(L,rekord->p[1].babu);
+	lua_setglobal(L, "db");
+
+	while(*futhat)
+	{
+		if (*lephet) {
+
+			// Ha veszít																													// Az emberi játékos nyer
+			if (rekord->p[1].lbabu<3 or (rekord->p[1].babu==0 and !tudelepni(*rekord,rekord->p[1].szin and !rekord->p[1].lbabu==3)) ) {rekord->nyertes=1; *lephet=false; return;} 
+			
+			lua_pushnumber(L, rekord->lastmove.hova);
+			lua_setglobal(L,"hova");
+			lua_pushnumber(L, rekord->lastmove.honnan);
+			lua_setglobal(L,"honnan");
+			lua_pushnumber(L, rekord->lastmove.leutotte);
+			lua_setglobal(L,"leutotte");
+
+			lua_getglobal(L,"lephet");
+			if(lua_isfunction(L, -1) )
+			{
+				lua_pcall(L,0,0,0); // Átadom mit lépet a játékos, és visszakapom hogy az AI mit lép
+
+				lua_getglobal(L,"hova");
+				rekord->lastmove.hova = lua_tonumber(L,-1);
+				lua_getglobal(L,"honnan");
+				rekord->lastmove.honnan = lua_tonumber(L,-1);
+				lua_getglobal(L,"leutotte");
+				rekord->lastmove.leutotte = lua_tonumber(L,-1);
+				
+				if (rekord->lastmove.hova>-1) {
+					stringstream ss;
+					ss << rekord->lastmove.hova << " " << rekord->p[1].szin;
+					tabla->setter(ss);
+					rekord->palya[gethanyadikfromid(*rekord,rekord->lastmove.hova)]->szin=rekord->p[1].szin;
+					rekord->p[1].babu--;
+				}
+				if (rekord->lastmove.honnan>-1) {
+					stringstream ss;
+					ss << rekord->lastmove.honnan << " " << 6;
+					tabla->setter(ss);
+					rekord->palya[gethanyadikfromid(*rekord,rekord->lastmove.honnan)]->szin=6; 
+					rekord->p[1].babu++;
+				}
+				if (rekord->lastmove.leutotte>-1) {
+					stringstream ss;
+					ss << rekord->lastmove.leutotte << " " << 6;
+					tabla->setter(ss);
+					rekord->palya[gethanyadikfromid(*rekord,rekord->lastmove.leutotte)]->szin=6; 
+					rekord->p[0].lbabu--;
+				}
+
+			}else cout << "FV" << endl;
+
+			*lephet=false;
+		}else //!*lephet
+		{
+			lua_getglobal(L,"szamol");
+			if(lua_isfunction(L, -1) )
+			{
+				lua_pcall(L,0,0,0);
+			}
+		}
+	} // futhat
+}
+
 
 void mainjatek(ENV &env,Rekord &rekord)
 {	
@@ -147,9 +259,18 @@ void mainjatek(ENV &env,Rekord &rekord)
 	tabla->setPosition(119,69);
 	kijelzo->setPosition(334,18);
 
-	while(gin >> env.ev and env.ev.keycode!=key_escape) {
+	thread *LuaAI=NULL;
+	bool futhat=true;
+	bool lephet=false;
+
+	if (rekord.AI) { // Ha van AI meghívom külön threaden a Lua kódot
+		LuaAI = new thread(LuaThreadAI,&futhat,&lephet,&rekord);
+	}
+
+	while(gin >> env.ev and env.ev.keycode!=key_escape and rekord.nyertes==0) { // A játék
 		if (!lepes(0,env,rekord)) break;
-		if (!lepes(1,env,rekord)) break;
+		if (!rekord.AI) {if (!lepes(1,env,rekord)) break;} // 2. Játékos lép
+		else {lephet=true; while(lephet);} // Megvárja az AI lépését
 	}
 
 	tabla->setPosition(999,999);
@@ -164,7 +285,13 @@ void mainjatek(ENV &env,Rekord &rekord)
 		while(gin >> env.ev and env.ev.type!=ev_key) {env.UpdateDrawHandle();}
 		env.delObj(victory);
 	}
-	
+
+	if (LuaAI) // Ha van LuaAI thread, akkor terminálom
+	{
+		futhat=false;
+		if (LuaAI->joinable()) LuaAI->join();
+		delete LuaAI;
+	}
 
 }
 

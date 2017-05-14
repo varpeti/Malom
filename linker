@@ -5,8 +5,8 @@
 
 ##################A projekt paraméterei:################
 fordito="g++"
-projectfileok="main.cpp Lua-Adapter/lua_adapter.cpp"
-parameterek="-std=c++14 -Lflugigraph -Iflugigraph -lgraphics -lSDL -lSDL_ttf -Iwidget -Ilua5.3.4/include -Llua5.3.4/lib -ILua-Adapter -lm -llua -ldl"
+projectfileok="main.cpp"
+parameterek="-std=c++14 -Lflugigraph -Iflugigraph -lgraphics -lSDL -lSDL_ttf -Iwidget -Ilua5.3.4/include -Llua5.3.4/lib -ILuaBridge -lm -llua -ldl -lpthread"
 nev="main.run"
 futtatas=true
 ########################################################

@@ -145,7 +145,6 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 	ki >> rekord.seed; cout << rekord.seed << endl; // Érdekes seed: 1494524236 izolált mező
 	ki >> rekord.AI;
 	ki >> rekord.Classic;
-	cout << rekord.AI << rekord.Classic << endl;
 
 	beal->setPosition(999,999);
 }
@@ -158,6 +157,6 @@ int initbeallitasok(ENV &env,Rekord &rekord)
 	rekord.p[0].szin=0;
 	rekord.p[1].szin=1;
 	rekord.seed=time(0); cout << rekord.seed << endl;
-	rekord.AI=false;
+	rekord.AI=true;
 	rekord.Classic=false;
 }
