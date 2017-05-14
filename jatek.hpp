@@ -78,12 +78,6 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 
 	// Ha kevesebb mint három bábuja van vagy (ha a kezébe 0 bábu és játékban nem tud lépni						úgy hogy 3-nál több bábuja van),		 veszít
 	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin and !rekord.p[jatekos].lbabu==3)) ) {rekord.nyertes=!jatekos+1; return false;} 
-	
-	{
-		stringstream str;
-		str << rekord.p[jatekos].szin << " "  << rekord.p[jatekos].babu; // szín, kézben lévő bábuk száma, győzelem.
-		kijelzo->setter(str);
-	}
 
 	bool felszedve = false;
 	bool uthet = false;
@@ -188,16 +182,19 @@ void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami 
 	lua_setglobal(L, "palya");
 
 	lua_pushnumber(L,rekord->p[1].babu);
-	lua_setglobal(L, "db");
+	lua_setglobal(L, "gbabu");
 
 	lua_pushnumber(L,rekord->p[1].lbabu);
-	lua_setglobal(L, "lbabu");
+	lua_setglobal(L, "glbabu");
 
 	lua_pushnumber(L,rekord->p[1].szin);
 	lua_setglobal(L, "szin");
 
 	lua_pushnumber(L,rekord->p[0].szin);
 	lua_setglobal(L, "eszin");
+
+	lua_getglobal(L,"init");
+	lua_pcall(L,0,0,0);
 
 	while(*futhat)
 	{
@@ -259,8 +256,12 @@ void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami 
 			lua_getglobal(L,"szamol");
 			if(lua_isfunction(L, -1) )
 			{
-				lua_pcall(L,0,0,0);
-			}
+				if (lua_pcall(L,0,0,0)>0)
+				{
+					cout << "hiba" << lua_tostring(L,-1) << endl;
+					return;
+				}
+			}else cout << "FV2" << endl;
 		}
 	} // futhat
 }
@@ -281,9 +282,18 @@ void mainjatek(ENV &env,Rekord &rekord)
 	}
 
 	while(gin >> env.ev and env.ev.keycode!=key_escape and rekord.nyertes==0) { // A játék
-		if (!lepes(0,env,rekord)) break;
+
+		{stringstream str; str << rekord.p[0].szin << " "  << rekord.p[0].babu; kijelzo->setter(str);}
+		if (!lepes(0,env,rekord)) break;  
+		{stringstream str; str << rekord.p[1].szin << " "  << rekord.p[1].babu; kijelzo->setter(str);}
 		if (!rekord.AI) {if (!lepes(1,env,rekord)) break;} // 2. Játékos lép
-		else {lephet=true; while(lephet);} // Megvárja az AI lépését
+		else {
+			env.ev.type=ev_timer; 
+			env.UpdateDrawHandle(); // Updatel hogyha elhúzná az AI
+
+			lephet=true;  // Megvárja az AI lépését
+			while(lephet);
+		} // Megvárja az AI lépését
 	}
 
 	tabla->setPosition(999,999);
