@@ -145,7 +145,6 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 					}
 				}
 			}
-			cout << "a: " << felszedve << uthet << endl;
 		}
 	}
 	return false; // Kilép a menübe
@@ -154,7 +153,8 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami a a kommunikációs csatorna a lua és a c++ között
 {
 	lua_State* L = luaL_newstate();
-	luaL_loadfile(L, "main.lua");
+	int err = luaL_loadfile(L, "main.lua");
+	if (err!=0) {cout << err << endl; return;}
 	luaL_openlibs(L);
 	lua_pcall(L, 0, 0, 0);
 
@@ -190,6 +190,15 @@ void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami 
 	lua_pushnumber(L,rekord->p[1].babu);
 	lua_setglobal(L, "db");
 
+	lua_pushnumber(L,rekord->p[1].lbabu);
+	lua_setglobal(L, "lbabu");
+
+	lua_pushnumber(L,rekord->p[1].szin);
+	lua_setglobal(L, "szin");
+
+	lua_pushnumber(L,rekord->p[0].szin);
+	lua_setglobal(L, "eszin");
+
 	while(*futhat)
 	{
 		if (*lephet) {
@@ -207,7 +216,11 @@ void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami 
 			lua_getglobal(L,"lephet");
 			if(lua_isfunction(L, -1) )
 			{
-				lua_pcall(L,0,0,0); // Átadom mit lépet a játékos, és visszakapom hogy az AI mit lép
+				if (lua_pcall(L,0,0,0)>0)
+				{
+					cout << lua_tostring(L,-1) << endl;
+					return;
+				}
 
 				lua_getglobal(L,"hova");
 				rekord->lastmove.hova = lua_tonumber(L,-1);
