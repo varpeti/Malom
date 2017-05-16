@@ -77,7 +77,7 @@ bool lepes(bool jatekos,ENV &env,Rekord &rekord)
 	rekord.lastmove.hova=-1; rekord.lastmove.honnan=-1; rekord.lastmove.leutotte=-1;
 
 	// Ha kevesebb mint három bábuja van vagy (ha a kezébe 0 bábu és játékban nem tud lépni						úgy hogy 3-nál több bábuja van),		 veszít
-	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin and !rekord.p[jatekos].lbabu==3)) ) {rekord.nyertes=!jatekos+1; return false;} 
+	if (rekord.p[jatekos].lbabu<3 or (rekord.p[jatekos].babu==0 and !tudelepni(rekord,rekord.p[jatekos].szin) and !rekord.p[jatekos].lbabu==3) ) {rekord.nyertes=!jatekos+1; return false;} 
 	
 	{
 		stringstream str;
@@ -204,7 +204,7 @@ void LuaThreadAI(bool *futhat,bool *lephet,Rekord *rekord) // Külön szál ami 
 		if (*lephet) {
 
 			// Ha veszít																													// Az emberi játékos nyer
-			if (rekord->p[1].lbabu<3 or (rekord->p[1].babu==0 and !tudelepni(*rekord,rekord->p[1].szin and !rekord->p[1].lbabu==3)) ) {rekord->nyertes=1; *lephet=false; return;} 
+			if (rekord->p[1].lbabu<3 or (rekord->p[1].babu==0 and !tudelepni(*rekord,rekord->p[1].szin) and !rekord->p[1].lbabu==3) ) {rekord->nyertes=1; *lephet=false; return;} 
 			
 			lua_pushnumber(L, rekord->lastmove.hova);
 			lua_setglobal(L,"hova");
