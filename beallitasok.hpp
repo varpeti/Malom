@@ -145,6 +145,7 @@ void mainbeallitasok(ENV &env,Rekord &rekord)
 	ki >> rekord.seed; cout << rekord.seed << endl; // Érdekes seed: 1494524236 izolált mező
 	ki >> rekord.AI;
 	ki >> rekord.Classic;
+	if (rekord.p[0].szin==0 and rekord.p[1].szin==2 and rekord.seed==333 and rekord.Classic) {srand(time(0)); bool a=rand()%2; rekord.p[0].szin=7+a; rekord.p[1].szin=7+!a;} // Easter egg
 
 	beal->setPosition(999,999);
 }
